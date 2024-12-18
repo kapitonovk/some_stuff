@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple weather</title>
+    <style>
+        body {
+	    font-family: Helvetica;
+            margin: 40px;
+        }
+        #weather-info {
+            margin-top: 40px;
+        }
+        #error-message {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Current Weather Information</h1>
+    
+    <label for="city">Enter City: </label>
+    <input type="text" id="city" placeholder="e.g., London">
+    <button onclick="getWeather()">Get Weather</button>
+    
+    <div id="weather-info"></div>
+    <div id="error-message"></div>
+
+    <script>
+        const apiKey = '4d1af874b70c4b5493f194506241812';  // Replace with your actual API key from weatherapi.com
+        const baseUrl = 'http://api.weatherapi.com/v1/current.json';
+
+        function getWeather() {
+            const city = document.getElementById('city').value;
+            if (!city) {
+                document.getElementById('error-message').innerText = 'Please enter a city.';
+                return;
+            }
+
+            // Construct the API request URL
+            const url = `${baseUrl}?key=${apiKey}&q=${city}&aqi=no`;
+
+            // Send the request to the Weather API
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Weather API request failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);  // Check the structure of the data
+                    displayWeather(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching weather data:', error);
+                    document.getElementById('error-message').innerText = 'Failed to get weather data. Please try again later.';
+                });
+        }
+
+        function displayWeather(data) {
+            const weatherInfo = document.getElementById('weather-info');
+            
+            if (data && data.current) {
+                const currentWeather = data.current;
+                weatherInfo.innerHTML = `
+                    <h2>Weather in ${data.location.name}, ${data.location.country}</h2>
+                    <p><strong>Temperature:</strong> ${currentWeather.temp_c}°C (${currentWeather.temp_f}°F)</p>
+                    <p><strong>Conditions:</strong> ${currentWeather.condition.text}</p>
+                    <p><strong>Wind speed:</strong> ${currentWeather.wind_kph}kph (${currentWeather.wind_mph}mph)</p>
+
+<!--                    <img src="http://${currentWeather.condition.icon}" alt="Weather icon"> -->
+                `;
+            } else {
+                weatherInfo.innerHTML = 'No weather data found.';
+            }
+        }
+    </script>
+</body>
+</html>
