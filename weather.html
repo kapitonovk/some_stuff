@@ -15,6 +15,12 @@
         #error-message {
             color: red;
         }
+        .tomorrow-weather {
+            margin-top: 20px;
+            <--! padding: 15px; -->
+            <--! background-color: #f5f5f5; -->
+            <--! border-radius: 8px; -->
+        }
     </style>
 </head>
 <body>
@@ -29,7 +35,7 @@
 
     <script>
         const apiKey = '4d1af874b70c4b5493f194506241812';  // Replace with your actual API key from weatherapi.com
-        const baseUrl = 'https://api.weatherapi.com/v1/current.json';
+        const baseUrl = 'https://api.weatherapi.com/v1';
 
         function getWeather() {
             const city = document.getElementById('city').value;
@@ -38,8 +44,11 @@
                 return;
             }
 
-            // Construct the API request URL
-            const url = `${baseUrl}?key=${apiKey}&q=${city}&aqi=no`;
+            // Clear previous error
+            document.getElementById('error-message').innerText = '';
+
+            // Construct the API request URL for forecast (3 days to get tomorrow)
+            const url = `${baseUrl}/forecast.json?key=${apiKey}&q=${city}&days=3&aqi=no&alerts=no`;
 
             // Send the request to the Weather API
             fetch(url)
@@ -62,15 +71,24 @@
         function displayWeather(data) {
             const weatherInfo = document.getElementById('weather-info');
             
-            if (data && data.current) {
+            if (data && data.current && data.forecast && data.forecast.forecastday.length > 1) {
                 const currentWeather = data.current;
+                const tomorrow = data.forecast.forecastday[1].day;
+                
                 weatherInfo.innerHTML = `
                     <h2>Weather in ${data.location.name}, ${data.location.country}</h2>
                     <p><strong>Temperature:</strong> ${currentWeather.temp_c}°C (${currentWeather.temp_f}°F)</p>
                     <p><strong>Conditions:</strong> ${currentWeather.condition.text}</p>
-                    <p><strong>Wind speed:</strong> ${currentWeather.wind_kph}kph (${currentWeather.wind_mph}mph)</p>
+                    <p><strong>Wind speed:</strong> ${currentWeather.wind_kph} kph (${currentWeather.wind_mph} mph)</p>
 
-<!--                    <img src="http://${currentWeather.condition.icon}" alt="Weather icon"> -->
+                    <div class="tomorrow-weather">
+                        <h3>Weather Tomorrow</h3>
+                        <p><strong>Max temperature:</strong> ${tomorrow.maxtemp_c}°C (${tomorrow.maxtemp_f}°F)</p>
+                        <p><strong>Min temperature:</strong> ${tomorrow.mintemp_c}°C (${tomorrow.mintemp_f}°F)</p>
+                        <p><strong>Conditions:</strong> ${tomorrow.condition.text}</p>
+                        <p><strong>Chance of rain:</strong> ${tomorrow.daily_chance_of_rain}%</p>
+                        <p><strong>Max wind speed:</strong> ${tomorrow.maxwind_kph} kph (${tomorrow.maxwind_mph} mph)</p>
+                    </div>
                 `;
             } else {
                 weatherInfo.innerHTML = 'No weather data found.';
